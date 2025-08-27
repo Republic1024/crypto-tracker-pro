@@ -1,4 +1,4 @@
-echo '[build]
+[build]
   publish = "out"
   command = "npm run build"
 
@@ -8,4 +8,4 @@ echo '[build]
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200' > netlify.toml
+  status = 200
