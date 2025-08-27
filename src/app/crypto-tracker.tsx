@@ -3,6 +3,35 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Bell, BellOff, Sun, Moon, Plus, Minus, TrendingUp, TrendingDown, Star, Calculator, Newspaper, Zap } from 'lucide-react';
 
+// 类型定义
+interface CryptoData {
+  price: number;
+  change: number;
+  volume: string;
+  marketCap: string;
+}
+
+interface CryptoDataMap {
+  [key: string]: CryptoData;
+}
+
+interface Alert {
+  id: number;
+  symbol: string;
+  price: number;
+  type: 'above' | 'below';
+  timestamp: string;
+}
+
+interface Holding {
+  id: number;
+  symbol: string;
+  amount: number;
+  buyPrice: number;
+  value: number;
+  timestamp: string;
+}
+
 const CryptoTracker = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedCrypto, setSelectedCrypto] = useState('BTC');
@@ -12,19 +41,41 @@ const CryptoTracker = () => {
   const [addAmount, setAddAmount] = useState('');
   const [activeTab, setActiveTab] = useState('tracker');
   
+  const CryptoTracker = () => {
+    const [darkMode, setDarkMode] = useState(false);
+    const [selectedCrypto, setSelectedCrypto] = useState('BTC');
+    const [alertPrice, setAlertPrice] = useState('');
+    const [alerts, setAlerts] = useState<Alert[]>([]);
+    const [portfolio, setPortfolio] = useState<Holding[]>([]);
+    const [addAmount, setAddAmount] = useState('');
+    const [activeTab, setActiveTab] = useState('tracker');
+    
+    // 模拟加密货币数据
+    const [cryptoData, setCryptoData] = useState<CryptoDataMap>({
+      BTC: { price: 43250.50, change: 2.5, volume: '23.4B', marketCap: '845B' },
+      ETH: { price: 2650.25, change: -1.2, volume: '12.8B', marketCap: '318B' },
+      BNB: { price: 310.75, change: 3.8, volume: '1.2B', marketCap: '47B' },
+      SOL: { price: 98.40, change: 5.2, volume: '2.1B', marketCap: '42B' },
+      ADA: { price: 0.485, change: -0.8, volume: '520M', marketCap: '17B' },
+      XRP: { price: 0.52, change: 1.5, volume: '1.8B', marketCap: '28B' },
+      DOT: { price: 7.25, change: 2.1, volume: '180M', marketCap: '9B' },
+      AVAX: { price: 36.80, change: 4.3, volume: '320M', marketCap: '14B' },
+      LINK: { price: 14.90, change: -2.1, volume: '420M', marketCap: '8B' },
+      MATIC: { price: 0.85, change: 6.7, volume: '310M', marketCap: '8B' }
+    });
   // 模拟加密货币数据
-  const [cryptoData, setCryptoData] = useState({
-    BTC: { price: 43250.50, change: 2.5, volume: '23.4B', marketCap: '845B' },
-    ETH: { price: 2650.25, change: -1.2, volume: '12.8B', marketCap: '318B' },
-    BNB: { price: 310.75, change: 3.8, volume: '1.2B', marketCap: '47B' },
-    SOL: { price: 98.40, change: 5.2, volume: '2.1B', marketCap: '42B' },
-    ADA: { price: 0.485, change: -0.8, volume: '520M', marketCap: '17B' },
-    XRP: { price: 0.52, change: 1.5, volume: '1.8B', marketCap: '28B' },
-    DOT: { price: 7.25, change: 2.1, volume: '180M', marketCap: '9B' },
-    AVAX: { price: 36.80, change: 4.3, volume: '320M', marketCap: '14B' },
-    LINK: { price: 14.90, change: -2.1, volume: '420M', marketCap: '8B' },
-    MATIC: { price: 0.85, change: 6.7, volume: '310M', marketCap: '8B' }
-  });
+  // const [cryptoData, setCryptoData] = useState({
+  //   BTC: { price: 43250.50, change: 2.5, volume: '23.4B', marketCap: '845B' },
+  //   ETH: { price: 2650.25, change: -1.2, volume: '12.8B', marketCap: '318B' },
+  //   BNB: { price: 310.75, change: 3.8, volume: '1.2B', marketCap: '47B' },
+  //   SOL: { price: 98.40, change: 5.2, volume: '2.1B', marketCap: '42B' },
+  //   ADA: { price: 0.485, change: -0.8, volume: '520M', marketCap: '17B' },
+  //   XRP: { price: 0.52, change: 1.5, volume: '1.8B', marketCap: '28B' },
+  //   DOT: { price: 7.25, change: 2.1, volume: '180M', marketCap: '9B' },
+  //   AVAX: { price: 36.80, change: 4.3, volume: '320M', marketCap: '14B' },
+  //   LINK: { price: 14.90, change: -2.1, volume: '420M', marketCap: '8B' },
+  //   MATIC: { price: 0.85, change: 6.7, volume: '310M', marketCap: '8B' }
+  // });
 
   // 历史价格数据（模拟）
   const [priceHistory, setPriceHistory] = useState([]);
@@ -64,19 +115,19 @@ const CryptoTracker = () => {
     ];
   };
 
-  // 模拟实时价格更新
   useEffect(() => {
     const interval = setInterval(() => {
       setCryptoData(prev => {
         const updated = { ...prev };
         Object.keys(updated).forEach(key => {
           const change = (Math.random() - 0.5) * 0.02;
-          updated[key].price = Math.max(0.001, updated[key].price * (1 + change));
-          updated[key].change = updated[key].change + (Math.random() - 0.5) * 0.5;
+          const cryptoKey = key as keyof CryptoDataMap;
+          updated[cryptoKey].price = Math.max(0.001, updated[cryptoKey].price * (1 + change));
+          updated[cryptoKey].change = updated[cryptoKey].change + (Math.random() - 0.5) * 0.5;
         });
         return updated;
       });
-
+  
       // 更新价格历史
       setPriceHistory(prev => {
         const newPoint = {
@@ -86,18 +137,17 @@ const CryptoTracker = () => {
         return [...prev.slice(-20), newPoint];
       });
     }, 3000);
-
+  
     return () => clearInterval(interval);
-  }, [selectedCrypto]);
+  }, [selectedCrypto, cryptoData]);
 
   // 检查价格提醒
   useEffect(() => {
-    alerts.forEach(alert => {
+    alerts.forEach((alert: Alert) => {
       const currentPrice = cryptoData[alert.symbol]?.price;
       if (currentPrice && 
           ((alert.type === 'above' && currentPrice >= alert.price) ||
            (alert.type === 'below' && currentPrice <= alert.price))) {
-        // 模拟通知
         console.log(`价格提醒: ${alert.symbol} 已${alert.type === 'above' ? '超过' : '低于'} $${alert.price}`);
       }
     });
