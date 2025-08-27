@@ -212,7 +212,7 @@ const CryptoTracker = () => {
         <div className="flex justify-between items-center max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Zap className="text-yellow-500" />
-            CryptoTracker Pro
+            CryptoTracker Pro(Made by Republic)
           </h1>
           <div className="flex items-center gap-4">
             {/* Tab Navigation */}
